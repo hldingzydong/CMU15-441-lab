@@ -1,5 +1,7 @@
 #include "parse.h"
 
+extern void set_parsing_options(char *buf, size_t siz, Request *parsing_request);
+extern int yyparse();
 /**
 * Given a char buffer returns the parsed request headers
 */
