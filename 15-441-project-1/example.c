@@ -12,10 +12,10 @@ int main(int argc, char **argv){
   int fd_in = open(argv[1], O_RDONLY);
   int index;
   char buf[8192];
-	if(fd_in < 0) {
-		printf("Failed to open the file\n");
-		return 0;
-	}
+  if(fd_in < 0) {
+      printf("Failed to open the file\n");
+      return 0;
+  }
   int readRet = read(fd_in,buf,8192);
   //Parse the buffer to the parse function. You will need to pass the socket fd and the buffer would need to
   //be read from that fd

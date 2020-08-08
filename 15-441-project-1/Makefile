@@ -23,10 +23,10 @@ example: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 echo_server:
-	$(CC) echo_server.c -o echo_server -Wall -Werror
+	$(CC) echo_server.c -g -o echo_server -Wall -Werror
 
 echo_client:
-	$(CC) echo_client.c -o echo_client -Wall -Werror
+	$(CC) echo_client.c -g -o echo_client -Wall -Werror
 
 clean:
 	rm -f *~ *.o example lex.yy.c y.tab.c y.tab.h echo_server echo_client

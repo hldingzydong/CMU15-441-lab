@@ -6,7 +6,7 @@ extern int yyparse();
 * Given a char buffer returns the parsed request headers
 */
 Request * parse(char *buffer, int size, int socketFd) {
-  //Differant states in the state machine
+    //Differant states in the state machine
 	enum {
 		STATE_START = 0, STATE_CR, STATE_CRLF, STATE_CRLFCR, STATE_CRLFCRLF
 	};
@@ -30,10 +30,12 @@ Request * parse(char *buffer, int size, int socketFd) {
 		switch (state) {
 		case STATE_START:
 		case STATE_CRLF:
+		    // 回车符号
 			expected = '\r';
 			break;
 		case STATE_CR:
 		case STATE_CRLFCR:
+		    // 换行符
 			expected = '\n';
 			break;
 		default:
@@ -47,17 +49,15 @@ Request * parse(char *buffer, int size, int socketFd) {
 			state = STATE_START;
 
 	}
-
   //Valid End State
 	if (state == STATE_CRLFCRLF) {
 		Request *request = (Request *) malloc(sizeof(Request));
-    request->header_count=0;
-    //TODO You will need to handle resizing this in parser.y
-    request->headers = (Request_header *) malloc(sizeof(Request_header)*1);
+		request->header_count=0;
+        //TODO You will need to handle resizing this in parser.y
+        request->headers = (Request_header *) malloc(sizeof(Request_header)*10);
 		set_parsing_options(buf, i, request);
-
 		if (yyparse() == SUCCESS) {
-      return request;
+            return request;
 		}
 	}
   //TODO Handle Malformed Requests
