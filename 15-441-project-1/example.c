@@ -28,7 +28,10 @@ int main(int argc, char **argv){
     printf("Request Header\n");
     printf("Header name %s Header Value %s\n",request->headers[index].header_name,request->headers[index].header_value);
   }
+  printf("Request Body\n");
+  printf("%s\n", request->body);
   free(request->headers);
+  free(request->body);
   free(request);
   return 0;
 }

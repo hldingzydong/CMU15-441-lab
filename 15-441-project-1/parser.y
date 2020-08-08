@@ -6,9 +6,10 @@
 
 %{
 #include "parse.h"
+#include <string.h>
 
 /* Define YACCDEBUG to enable debug messages for this lex file */
-#define YACCDEBUG
+//#define YACCDEBUG
 #define YYERROR_VERBOSE
 #ifdef YACCDEBUG
 #include <stdio.h>
@@ -195,14 +196,11 @@ request_line: token t_sp text t_sp text t_crlf {
 	strcpy(parsing_request->http_version, $5);
 };
 
-request_header: token ows t_colon ows text ows t_crlf {
-	YPRINTF("request_Header:\n%s\n%s\n",$1,$5);
-    strcpy(parsing_request->headers[parsing_request->header_count].header_name, $1);
-	strcpy(parsing_request->headers[parsing_request->header_count].header_value, $5);
-	parsing_request->header_count++;
+request_header: {
+    YPRINTF("request_Header(Empty)\n");
 }; |
 request_header token ows t_colon ows text ows t_crlf {
-    YPRINTF("request_Header:\n%s\n%s\n",$2,$6);
+    YPRINTF("request_Header(Matched):\n%s\n%s\n",$2,$6);
     strcpy(parsing_request->headers[parsing_request->header_count].header_name, $2);
     strcpy(parsing_request->headers[parsing_request->header_count].header_value, $6);
     parsing_request->header_count++;
@@ -211,14 +209,15 @@ request_header token ows t_colon ows text ows t_crlf {
 /*
  * for parsing http request body
  */
-request_body: text ows t_crlf {
-    YPRINTF("request_Body:\n%s\n",$1);
-    strcpy(parsing_request->body, $1);
-}; |
-request_body text ows t_crlf {
-    YPRINTF("request_Body:\n%s\n",$2);
-    strcpy(parsing_request->body, $2);
-}
+request_body: {
+        YPRINTF("request_body: Empty\n");
+    };
+    | request_body text ows t_crlf {
+        // need to clarify whether http body could have crlf
+        YPRINTF("request_Body:\n%s\n",$2);
+        strcpy(parsing_request->body + parsing_request->body_length, $2);
+        parsing_request->body_length += strlen($2);
+    };
 
 /*
  * You need to fill this rule, and you are done! You have all the assembly
@@ -226,7 +225,7 @@ request_body text ows t_crlf {
  * and the annotated excerpted text on the course website. All the best!
  *
  */
-request: request_line request_header t_crlf {
+request: request_line request_header t_crlf request_body t_crlf {
     YPRINTF("parsing_request: Matched Success.\n");
     return SUCCESS;
 };

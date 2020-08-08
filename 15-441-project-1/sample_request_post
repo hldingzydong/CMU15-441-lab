@@ -7,5 +7,7 @@ Accept-Language: en-us
 Accept-Encoding: gzip, deflate
 Connection: Keep-Alive
 
-<?xml version="1.0" encoding="utf-8"?>
-<string xmlns="http://clearforest.com/">string</string>
+<html lang="en"><head><meta charSet="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0"/>
+<meta name="theme-color" content="#ec7259"/>
+

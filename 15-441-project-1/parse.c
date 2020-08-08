@@ -7,6 +7,7 @@ extern int yyparse();
 */
 Request * parse(char *buffer, int size, int socketFd) {
     //Differant states in the state machine
+    printf("size=%d\n", size);
 	enum {
 		STATE_START = 0, STATE_CR, STATE_CRLF, STATE_CRLFCR, STATE_CRLFCRLF
 	};
@@ -18,11 +19,11 @@ Request * parse(char *buffer, int size, int socketFd) {
 	memset(buf, 0, 8192);
 
 	state = STATE_START;
-	while (state != STATE_CRLFCRLF) {
+	while (i < size) {
 		char expected = 0;
 
-		if (i == size)
-			break;
+		/*if (i == size)
+			break;*/
 
 		ch = buffer[i++];
 		buf[offset++] = ch;
@@ -50,9 +51,10 @@ Request * parse(char *buffer, int size, int socketFd) {
 
 	}
 	printf("state = %d\n", state);
+	printf("i = %d\n", i);
   //Valid End State
 	if (state == STATE_CRLFCRLF) {
-	    printf("Start to parse buffer");
+	    printf("Start to parse buffer\n");
 		Request *request = (Request *) malloc(sizeof(Request));
 		request->header_count=0;
         // set the max header number is 10
