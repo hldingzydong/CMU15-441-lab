@@ -11,6 +11,8 @@ typedef struct
 	char header_value[4096];
 } Request_header;
 
+typedef char Request_body;
+
 //HTTP Request Header
 typedef struct
 {
@@ -19,6 +21,7 @@ typedef struct
 	char http_uri[4096];
 	Request_header *headers;
 	int header_count;
+	Request_body *body;
 } Request;
 
 Request* parse(char *buffer, int size,int socketFd);

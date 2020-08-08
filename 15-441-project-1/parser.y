@@ -8,7 +8,7 @@
 #include "parse.h"
 
 /* Define YACCDEBUG to enable debug messages for this lex file */
-//#define YACCDEBUG
+#define YACCDEBUG
 #define YYERROR_VERBOSE
 #ifdef YACCDEBUG
 #include <stdio.h>
@@ -208,6 +208,17 @@ request_header token ows t_colon ows text ows t_crlf {
     parsing_request->header_count++;
 };
 
+/*
+ * for parsing http request body
+ */
+request_body: text ows t_crlf {
+    YPRINTF("request_Body:\n%s\n",$1);
+    strcpy(parsing_request->body, $1);
+}; |
+request_body text ows t_crlf {
+    YPRINTF("request_Body:\n%s\n",$2);
+    strcpy(parsing_request->body, $2);
+}
 
 /*
  * You need to fill this rule, and you are done! You have all the assembly
@@ -215,9 +226,9 @@ request_header token ows t_colon ows text ows t_crlf {
  * and the annotated excerpted text on the course website. All the best!
  *
  */
-request: request_line request_header t_crlf{
-	YPRINTF("parsing_request: Matched Success.\n");
-	return SUCCESS;
+request: request_line request_header t_crlf {
+    YPRINTF("parsing_request: Matched Success.\n");
+    return SUCCESS;
 };
 
 %%

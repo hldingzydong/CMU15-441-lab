@@ -49,13 +49,17 @@ Request * parse(char *buffer, int size, int socketFd) {
 			state = STATE_START;
 
 	}
+	printf("state = %d\n", state);
   //Valid End State
 	if (state == STATE_CRLFCRLF) {
+	    printf("Start to parse buffer");
 		Request *request = (Request *) malloc(sizeof(Request));
 		request->header_count=0;
-        //TODO You will need to handle resizing this in parser.y
+        // set the max header number is 10
         request->headers = (Request_header *) malloc(sizeof(Request_header)*10);
-		set_parsing_options(buf, i, request);
+		// set the max request body is 10KB
+        request->body = (Request_body *)malloc(sizeof(Request_body)*1024*10);
+        set_parsing_options(buf, i, request);
 		if (yyparse() == SUCCESS) {
             return request;
 		}
