@@ -22,7 +22,6 @@ typedef struct
 	Request_header *headers;
 	int header_count;
 	Request_body *body;
-	long body_length;
 } Request;
 
 Request* parse(char *buffer, int size,int socketFd);

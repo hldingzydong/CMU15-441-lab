@@ -19,11 +19,11 @@ Request * parse(char *buffer, int size, int socketFd) {
 	memset(buf, 0, 8192);
 
 	state = STATE_START;
-	while (i < size) {
+	while (state != STATE_CRLFCRLF) {
 		char expected = 0;
 
-		/*if (i == size)
-			break;*/
+		if (i == size)
+			break;
 
 		ch = buffer[i++];
 		buf[offset++] = ch;
@@ -52,8 +52,8 @@ Request * parse(char *buffer, int size, int socketFd) {
 	}
 	printf("state = %d\n", state);
 	printf("i = %d\n", i);
-  //Valid End State
-	if (state == STATE_CRLFCRLF) {
+    //Valid End State
+	 if (state == STATE_CRLFCRLF) {
 	    printf("Start to parse buffer\n");
 		Request *request = (Request *) malloc(sizeof(Request));
 		request->header_count=0;
@@ -61,6 +61,12 @@ Request * parse(char *buffer, int size, int socketFd) {
         request->headers = (Request_header *) malloc(sizeof(Request_header)*10);
 		// set the max request body is 10KB
         request->body = (Request_body *)malloc(sizeof(Request_body)*1024*10);
+        offset = 0;
+        int j = i;
+        while(j < size) {
+            ch = buffer[j++];
+            request->body[offset++] = ch;
+        }
         set_parsing_options(buf, i, request);
 		if (yyparse() == SUCCESS) {
             return request;

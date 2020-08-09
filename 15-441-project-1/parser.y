@@ -9,7 +9,7 @@
 #include <string.h>
 
 /* Define YACCDEBUG to enable debug messages for this lex file */
-//#define YACCDEBUG
+#define YACCDEBUG
 #define YYERROR_VERBOSE
 #ifdef YACCDEBUG
 #include <stdio.h>
@@ -26,6 +26,8 @@ void set_parsing_options(char *buf, size_t siz, Request *parsing_request);
 /* yyparse() calls yylex() to get tokens */
 extern int yylex();
 
+/*for debug*/
+// int yydebug=1;
 
 /*
 ** Global variables required for parsing from buffer
@@ -207,25 +209,12 @@ request_header token ows t_colon ows text ows t_crlf {
 };
 
 /*
- * for parsing http request body
- */
-request_body: {
-        YPRINTF("request_body: Empty\n");
-    };
-    | request_body text ows t_crlf {
-        // need to clarify whether http body could have crlf
-        YPRINTF("request_Body:\n%s\n",$2);
-        strcpy(parsing_request->body + parsing_request->body_length, $2);
-        parsing_request->body_length += strlen($2);
-    };
-
-/*
  * You need to fill this rule, and you are done! You have all the assembly
  * needed. You may wish to define your own rules. Please read RFC 2616
  * and the annotated excerpted text on the course website. All the best!
  *
  */
-request: request_line request_header t_crlf request_body t_crlf {
+request: request_line request_header t_crlf {
     YPRINTF("parsing_request: Matched Success.\n");
     return SUCCESS;
 };

@@ -12,4 +12,14 @@ extern int yyparse();
 ```shell script
 xxd {filename}
 ```
-- line22:parse.c 跳出循环存在问题,已fix
+- 在parse http request时,遵循RFC2616对Request格式的定义:
+```
+Request       = Request-Line                      ; Section 5.1
+                        *(( general-header        ; Section 4.5
+                         | request-header         ; Section 5.3
+                         | entity-header ) CRLF)  ; Section 7.1
+                        CRLF
+                        [ message-body ]          ; Section 4.3
+
+```
+所以,message-body包含任意字符,包括crlf,因此无需解析,只需放入Request->body中
