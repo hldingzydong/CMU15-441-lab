@@ -22,4 +22,10 @@ Request       = Request-Line                      ; Section 5.1
                         [ message-body ]          ; Section 4.3
 
 ```
-所以,message-body包含任意字符,包括crlf,因此无需解析,只需放入Request->body中
+所以,message-body包含任意字符,包括crlf,因此无需解析,只需放入Request->body中  
+- 在select()中某个socketfd可读时,若recv()返回0,说明此时该socket对应的client已关闭
+
+
+## Checkpoint 1
+1. 实现基于select()的echo_server  
+2. 对buffer进行解析,得到 http request, 或者 bad request
