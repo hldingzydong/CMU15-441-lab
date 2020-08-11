@@ -23,7 +23,7 @@ example: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 echo_server:
-	$(CC) echo_server.c -g -o echo_server -Wall -Werror
+	$(CC) echo_server.c parse.c y.tab.c lex.yy.c -g -o echo_server ##-Wall -Werror
 
 echo_client:
 	$(CC) echo_client.c -g -o echo_client -Wall -Werror

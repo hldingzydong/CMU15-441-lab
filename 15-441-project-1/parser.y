@@ -9,7 +9,7 @@
 #include <string.h>
 
 /* Define YACCDEBUG to enable debug messages for this lex file */
-#define YACCDEBUG
+//#define YACCDEBUG
 #define YYERROR_VERBOSE
 #ifdef YACCDEBUG
 #include <stdio.h>

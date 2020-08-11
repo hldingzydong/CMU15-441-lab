@@ -12,7 +12,6 @@
 *******************************************************************************/
 
 #include <netinet/in.h>
-#include <netinet/ip.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +19,8 @@
 #include <sys/select.h>
 #include <unistd.h>
 #include <signal.h>
+#include <pthread.h>
+#include "parse.h"
 
 #define ECHO_PORT 9999              // the server port
 #define BUF_SIZE 4096               // the buffer size
@@ -30,7 +31,11 @@
 
 int listen_socket = NO_SOCKET;             // share data
 int client_socket_fds[MAX_CLIENTS_NUMBER]; // share data
+const char *BAD_REQUEST = "HTTP/1.1 400 Bad Request\\r\\n";
 
+/**
+ * helper functions
+ */
 int close_socket(int socket)
 {
     if (close(socket))
@@ -70,6 +75,10 @@ void handle_signal_action(int sig_number)
     }
 }
 
+/**
+ * setup functions
+ * @return
+ */
 int setup_signals()
 {
     struct sigaction sa;
@@ -175,6 +184,9 @@ void clear_client_fd(int client_fd) {
     client_socket_fds[index] = NO_SOCKET;
 }
 
+/**
+ * when listening socket receive a new connection
+ */
 int handle_new_connection() {
     int client_sock_fd;
     socklen_t cli_size;
@@ -193,6 +205,46 @@ int handle_new_connection() {
     return 0;
 }
 
+/**
+ * thread to receive client message
+ * for now, just a echo handler
+ */
+void* handle_client_message(void* arg) {
+    int* client_socket_fd = (int*)arg;
+    char buffer[BUF_SIZE];
+
+    int read_ret = 0;
+    while((read_ret = recv(*client_socket_fd, buffer, BUF_SIZE, 0)) >= 1)
+    {
+        printf("message length = %d\n", read_ret);
+        fprintf(stdout, "server received message = %s\n", buffer);
+        Request* request = parse(buffer, read_ret, *client_socket_fd);
+        if(request == NULL) {
+            strncpy(buffer, BAD_REQUEST, strlen(BAD_REQUEST));
+            read_ret = (int)strlen(BAD_REQUEST);
+        }
+        if (send(*client_socket_fd, buffer, read_ret, 0) != read_ret)
+        {
+            close_socket(*client_socket_fd);
+            clear_client_fd(*client_socket_fd);
+            fprintf(stderr, "Error sending to client.\n");
+            return NULL;
+        }
+        memset(buffer, 0, BUF_SIZE);
+    }
+
+    if (read_ret == -1)
+    {
+        close_socket(*client_socket_fd);
+        clear_client_fd(*client_socket_fd);
+        fprintf(stderr, "Error reading from client socket.\n");
+    }
+    return NULL;
+}
+
+/**
+ * liso server entrance
+ */
 int main(int argc, char* argv[])
 {
     struct timeval timeout;
@@ -223,32 +275,13 @@ int main(int argc, char* argv[])
             for(int i = 0; i < MAX_CLIENTS_NUMBER; i++) {
                 // for every readable socket fd start thread for each one
                 // and deal with the message respectively
+                if(FD_ISSET(client_socket_fds[i], &read_fds)) {
+                    // not use multiple thread now
+                    handle_client_message(&client_socket_fds[i]);
+                }
             }
        }
 
-
-       /*
-       readret = 0;
-       while((readret = recv(client_sock, buf, BUF_SIZE, 0)) >= 1)
-       {
-           if (send(client_sock, buf, readret, 0) != readret)
-           {
-               close_socket(client_sock);
-               close_socket(sock);
-               fprintf(stderr, "Error sending to client.\n");
-               return EXIT_FAILURE;
-           }
-           memset(buf, 0, BUF_SIZE);
-       } 
-
-       if (readret == -1)
-       {
-           close_socket(client_sock);
-           close_socket(sock);
-           fprintf(stderr, "Error reading from client socket.\n");
-           return EXIT_FAILURE;
-       }
-       */
     }
     return EXIT_SUCCESS;
 }
