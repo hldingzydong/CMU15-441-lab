@@ -29,9 +29,10 @@
 #define NO_SOCKET -1
 #define LISTEN_SOCKET_QUNUE_SIZE 5
 
+const char *BAD_REQUEST = "HTTP/1.1 400 Bad Request\r\n";
 int listen_socket = NO_SOCKET;             // share data
 int client_socket_fds[MAX_CLIENTS_NUMBER]; // share data
-const char *BAD_REQUEST = "HTTP/1.1 400 Bad Request\\r\\n";
+pthread_t threads[MAX_CLIENTS_NUMBER];     // thread identifier
 
 /**
  * helper functions
@@ -205,6 +206,14 @@ int handle_new_connection() {
     return 0;
 }
 
+void free_http_request(Request* request) {
+    if(request != NULL) {
+        free(request->headers);
+        free(request->body);
+        free(request);
+    }
+}
+
 /**
  * thread to receive client message
  * for now, just a echo handler
@@ -225,11 +234,13 @@ void* handle_client_message(void* arg) {
         }
         if (send(*client_socket_fd, buffer, read_ret, 0) != read_ret)
         {
+            fprintf(stderr, "Error sending to client.\n");
             close_socket(*client_socket_fd);
             clear_client_fd(*client_socket_fd);
-            fprintf(stderr, "Error sending to client.\n");
+            free_http_request(request);
             return NULL;
         }
+        free_http_request(request);
         memset(buffer, 0, BUF_SIZE);
     }
 
@@ -271,17 +282,34 @@ int main(int argc, char* argv[])
                     return EXIT_FAILURE;
                 }
             }
-
+            // clear threads array
+            memset(threads, 0, sizeof(pthread_t) * MAX_CLIENTS_NUMBER);
             for(int i = 0; i < MAX_CLIENTS_NUMBER; i++) {
-                // for every readable socket fd start thread for each one
-                // and deal with the message respectively
-                if(FD_ISSET(client_socket_fds[i], &read_fds)) {
-                    // not use multiple thread now
+                if(client_socket_fds[i] > 0 && FD_ISSET(client_socket_fds[i], &read_fds)) {
+                    /*int ret_trd =
+                            pthread_create(&threads[i], NULL,
+                                           handle_client_message, (void*)&client_socket_fds[i]);
+                    if(ret_trd != 0) {
+                        close_socket(client_socket_fds[i]);
+                        clear_client_fd(client_socket_fds[i]);
+                        fprintf(stderr, "cannot create thread for handling %d\n", client_socket_fds[i]);
+                    }*/
                     handle_client_message(&client_socket_fds[i]);
                 }
             }
-       }
 
+            /*void *ret_val;
+            for(int i = 0; i < MAX_CLIENTS_NUMBER; i++) {
+                if(threads[i] != 0) {
+                    int ret_trd = pthread_join(threads[i], &ret_val);
+                    if(ret_trd != 0) {
+                        close_socket(client_socket_fds[i]);
+                        clear_client_fd(client_socket_fds[i]);
+                        fprintf(stderr, "cannot join thread for handling %d\n", client_socket_fds[i]);
+                    }
+                }
+            }*/
+       }
     }
     return EXIT_SUCCESS;
 }

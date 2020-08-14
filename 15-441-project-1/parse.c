@@ -53,9 +53,10 @@ Request * parse(char *buffer, int size, int socketFd) {
 	printf("state = %d\n", state);
 	printf("i = %d\n", i);
     //Valid End State
+    Request *request = NULL;
 	 if (state == STATE_CRLFCRLF) {
 	    printf("Start to parse buffer\n");
-		Request *request = (Request *) malloc(sizeof(Request));
+		request = (Request *) malloc(sizeof(Request));
 		request->header_count=0;
         // set the max header number is 10
         request->headers = (Request_header *) malloc(sizeof(Request_header)*10);
@@ -67,12 +68,12 @@ Request * parse(char *buffer, int size, int socketFd) {
             ch = buffer[j++];
             request->body[offset++] = ch;
         }
+        // TODO Bus error 10
         set_parsing_options(buf, i, request);
 		if (yyparse() == SUCCESS) {
             return request;
 		}
 	}
-    //TODO Handle Malformed Requests
     printf("Parsing Failed\n");
-    return NULL;
+    return request;
 }
